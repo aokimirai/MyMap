@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+    <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns/article#">
+
+        <meta charset="utf-8">
+        <meta name="viewport" content="initial-scale=1, width=device-width">
+
+        <!-- http://getbootstrap.com/docs/5.1/ -->
+        <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" rel="stylesheet">
+        <script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"></script>
+        <!-- faviconの設定 -->
+        <link href="/upload/favicon.ico" rel="icon">
+
+        <link href="/upload/styles.css" rel="stylesheet">
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content="https://ohitoriapp.herokuapp.com/" />
+        <meta property="og:image" content="https://d.kuku.lu/419fd4cc1" />
+        <meta property="og:site_name" content="My Map" />
+        <meta property="og:description" content="自分だけの世界地図" />
+
+        <title>My Map: {% block title %}{% endblock %}</title>
+
+    </head>
+
+    <body>
+
+        <nav class="bg-light border navbar navbar-expand-md navbar-light">
+            <div class="container-fluid">
+                <a class="navbar-brand title century" href="/">My Map</a>
+                <button aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-bs-target="#navbar" data-bs-toggle="collapse" type="button">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbar">
+                    {% if session["user_id"] %}
+                        <ul class="navbar-nav me-auto mt-2">
+                            <li class="nav-item"><a class="nav-link" href="/map">地図</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/mypage">マイページ</a></li>
+                        </ul>
+                        <ul class="navbar-nav ms-auto mt-2">
+                            <li class="nav-item"><a class="nav-link" href="/logout">ログアウト</a></li>
+                        </ul>
+                    {% else %}
+                        <ul class="navbar-nav me-auto mt-2">
+                            <li class="nav-item"><a class="nav-link" id="map">地図</a></li>
+                            <li class="nav-item"><a class="nav-link" id="mypage">マイページ</a></li>
+                        </ul>
+                        <ul class="navbar-nav ms-auto mt-2">
+                            <li class="nav-item"><a class="nav-link" href="/register">新規登録</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/login">ログイン</a></li>
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+
+        {% if get_flashed_messages() %}
+            <header>
+                <div class="alert alert-primary mb-0 text-center" role="alert">
+                    {{ get_flashed_messages() | join(" ") }}
+                </div>
+            </header>
+        {% endif %}
+
+        <div class="alert alert-primary mb-0 text-center hidden" id="auth">
+            登録してからご利用いただけます。
+        </div>
+        <script>
+            const post = document.getElementById('post');
+            const mypage = document.getElementById('mypage');
+            const auth = document.getElementById('auth');
+
+            function hidden() {
+                auth.classList.toggle('hidden');
+            }
+
+            post.addEventListener('click', () => {
+                clearTimeout(close);
+                hidden()
+                close = setTimeout(hidden, 2000)
+            });
+            mypage.addEventListener('click', () => {
+                clearTimeout(close);
+                hidden()
+                close = setTimeout(hidden, 2000)
+            });
+        </script>
+
+        <main class="container-fluid py-5 text-center">
+            {% block main %}
+            {% endblock %}
+        </main>
+    </body>
+
+</html>

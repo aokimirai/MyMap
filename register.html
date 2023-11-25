@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    新規登録
+{% endblock %}
+
+{% block main %}
+    <h1 class="title">My Map</h1>
+    <form action="/register" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="mb-3">
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="username" name="username" placeholder="ユーザID" type="text" requied>
+        </div>
+        <div class="mb-3">
+            <input class="form-control mx-auto w-auto" id="password" name="password" placeholder="パスワード" type="password" required>
+        </div>
+        <div class="mb-3">
+            <input class="form-control mx-auto w-auto" name="confirmation" placeholder="パスワード(確認)" type="password" required>
+            <p>※パスワード英数字各一文字を含めた6文字以上</p>
+        </div>
+        <button class="btn btn-primary" type="submit">登録</button>
+    </form>
+{% endblock %}
