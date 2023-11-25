@@ -1,0 +1,8 @@
+CREATE TABLE 'users'(
+'id' INTEGER PRIMARY KEY DEFAULT 0,
+'username' TEXT NOT NULL,
+'hash' TEXT NOT NULL,
+'display_name' TEXT DEFAULT 'unknown',
+'icon' TEXT,
+'created_at' TIMESTAMP DEFAULT(datetime('now','localtime'))
+);

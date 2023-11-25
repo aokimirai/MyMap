@@ -6,7 +6,6 @@ from helpers import apology, login_required
 import werkzeug
 from datetime import datetime
 import sqlite3
-# from flask_sqlalchemy import SQLAlchemy
 import re
 from flask_wtf.csrf import CSRFProtect
 
@@ -34,9 +33,10 @@ app.config['WTF_CSRF_ENABLED'] = True
 UPLOAD_POST_FOLDER = './upload'
 ALLOWED_EXTENSIONS = set(['.jpg','.gif','.png','image/gif','image/jpeg','image/png'])
 app.config['UPLOAD_FOLDER'] = UPLOAD_POST_FOLDER
+DBNAME = './mymap.db'
 
 def db(ope):
-    con = sqlite3.connect('./mymap.db')
+    con = sqlite3.connect(DBNAME)
     db = con.cursor()
     db = db.execute(ope)
     con.close()
@@ -63,3 +63,61 @@ def index():
             return redirect("/home")
     except:
         return render_template("index.html")
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    session.clear()
+    username = request.form.get("username")
+    password = request.form.get("password")
+    if request.method == "POST":
+        if not username:
+            return apology("ユーザーネームを入力してください", 403)
+        elif not password:
+            return apology("パスワードを入力してください", 403)
+
+        con = sqlite3.connect(DBNAME)
+        db = con.cursor()
+        db.execute("SELECT * FROM users WHERE username = ?", (username,))
+        users = db.fetchone()
+        con.close()
+        if users != None:
+            if check_password_hash(users[2], password):
+                session["user_id"] = users[0]
+                flash("ログインしました")
+                return redirect("/mypage")
+            else:
+                return apology("パスワードが無効です", 403)
+        else:
+            return apology("ユーザネームが無効です", 403)
+
+    else:
+        return render_template("login.html")
+
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        if not username:
+            return apology("ユーザーネームを入力してください", 400)
+        con = sqlite3.connect(DBNAME)
+        db = con.cursor()
+        db.execute("SELECT * FROM users where username=?", (username,))
+        user = db.fetchone()
+        if user != None:
+            return apology("このユーザーネームは既に使われています", 400)
+        elif not password:
+            return apology("パスワードを入力してください", 400)
+        elif password_check(password) == False:
+            return apology("英数字を一文字以上含んだ6文字以上のパスワードを入力してください")
+        elif password != request.form.get("confirmation"):
+            return apology("パスワードが一致しません", 400)
+        password = generate_password_hash(password)
+        db.execute("INSERT INTO users (username, hash) VALUES(?, ?)", (username, password))
+        con.commit()
+        con.close()
+        flash("登録が完了しました")
+        return redirect("/login")
+    else:
+        return render_template("register.html")
