@@ -5,8 +5,6 @@
 {% endblock %}
 
 {% block main %}
-    <h1 class="title">Mymap</h1>
-    
     {% for user in users %}
         {% if user[1] != None %}
             <img src="./upload/iconimg/{{ user[1] }}" width="20%" class="icon">

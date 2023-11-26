@@ -156,3 +156,41 @@ def mypage():
         con.close()
         return render_template("mypage.html",users=users) # posts=posts
 
+
+@app.route("/set", methods=["GET", "POST"])
+def set():
+    if request.method == "POST":
+        userid = session["user_id"]
+        nickname = request.form.get("nickname")
+        con = sqlite3.connect(DBNAME)
+        db = con.cursor()
+        users = db.execute("SELECT icon FROM users WHERE id = ?",(userid,)).fetchone()
+        if users[0] == None:
+            filepath=None
+        else:
+            filepath=db.execute("SELECT icon FROM users WHERE id = ?",(userid,)).fetchall()[0][0]
+
+        img = request.files['imgfile']
+        if img:
+            filepath = datetime.now().strftime("%Y%m%d_%H%M%S_") \
+            + werkzeug.utils.secure_filename(img.filename)
+            img.save(os.path.join(app.config['UPLOAD_FOLDER'] + '/iconimg', filepath))
+        
+        db.execute("UPDATE users SET display_name=?, icon=? WHERE id=?",(nickname,filepath,userid,))
+        con.commit()
+        con.close()
+        return redirect("/mypage")
+    else:
+        userid = session["user_id"]
+        con = sqlite3.connect(DBNAME)
+        db = con.cursor()
+        users = db.execute("SELECT display_name,icon FROM users WHERE id = (?)", (userid,)).fetchall()
+        return render_template("set.html",users=users)
+
+@app.route("/map", methods=["GET", "POST"])
+def map():
+    if request.method == "POST":
+
+        return redirect("/map")
+    else:
+        return render_template("map.html")

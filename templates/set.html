@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    設定
+{% endblock %}
+
+{% block main %}
+    <form action="/set" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        {% for user in users %}
+            <div class="mb-3">
+                <p>表示名</p>
+                <input name="nickname" type="text" value="{{ user[0] }}">
+            </div>
+            <p>アイコン</p>
+            <div class="mb-3">
+                {% if user[1] != None %}
+                    <img src="../upload/iconimg/{{ user[1] }}" width="20%" class="icon">
+                    {% else %}
+                    <img src="../upload/iconimg/icon-default.png" width="20%" class="icon">
+                {% endif %}
+                <input class="form-control" type="file" name="imgfile" accept=".jpg,.gif,.png,image/gif,image/jpeg,image/png" style="width:50%; display:revert">
+            </div>
+            <!--
+            <div class="mb-3">
+                <p>ひとこと</p>
+                <textarea name="comment" type="text" class="comment" >{{ user[2] }}</textarea>
+            </div>
+            -->
+        {% endfor %}
+        <button class="btn btn-primary" type="submit">設定</button>
+    </form>
+{% endblock %}
