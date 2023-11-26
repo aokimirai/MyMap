@@ -60,7 +60,7 @@ def after_request(response):
 def index():
     try:
         if session["user_id"]:
-            return redirect("/home")
+            return redirect("/mypage")
     except:
         return render_template("index.html")
 
@@ -84,7 +84,7 @@ def login():
             if check_password_hash(users[2], password):
                 session["user_id"] = users[0]
                 flash("ログインしました")
-                return redirect("/mypage")
+                return redirect("/")
             else:
                 return apology("パスワードが無効です", 403)
         else:
@@ -121,3 +121,38 @@ def register():
         return redirect("/login")
     else:
         return render_template("register.html")
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
+
+@app.route("/mypage", methods=["GET", "POST"])
+def mypage():
+    if request.method == "POST":
+        action = request.form.get('action')
+        # postid = request.form.get("postid")
+        if action == "rewrite":
+            con = sqlite3.connect(DBNAME)
+            db = con.cursor()
+            # posts = db.execute("SELECT * FROM posts WHERE id = ?",(postid,)).fetchall()
+            con.close()
+            return render_template("repost.html",posts=posts)
+        elif action == "del":
+            con = sqlite3.connect(DBNAME)
+            db = con.cursor()
+            db.execute("DELETE FROM posts WHERE id = ?",(postid,))
+            con.commit()
+            con.close()
+            return redirect("/mypage")
+        else:
+            return redirect("/mypage")
+    else:
+        userid = session["user_id"]
+        con = sqlite3.connect(DBNAME)
+        db = con.cursor()
+        users = db.execute("SELECT display_name,icon,created_at FROM users WHERE id = ?", (userid,)).fetchall()
+        # posts = db.execute("SELECT * FROM posts WHERE userid = ? ORDER BY posted_at DESC", (userid,)).fetchall()
+        con.close()
+        return render_template("mypage.html",users=users) # posts=posts
+
