@@ -1,5 +1,5 @@
 import os, json
-from flask import Flask, flash, redirect, render_template, request, session
+from flask import Flask, flash, redirect, render_template, render_template_string, request, session
 from flask_session.__init__ import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from helpers import apology, login_required
@@ -7,6 +7,7 @@ import werkzeug
 from datetime import datetime
 import sqlite3
 import re
+import sys
 from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__, static_folder='upload')
@@ -137,7 +138,7 @@ def mypage():
             db = con.cursor()
             # posts = db.execute("SELECT * FROM posts WHERE id = ?",(postid,)).fetchall()
             con.close()
-            return render_template("repost.html",posts=posts)
+            return render_template("repost.html") #,posts=posts
         elif action == "del":
             con = sqlite3.connect(DBNAME)
             db = con.cursor()
@@ -187,10 +188,15 @@ def set():
         users = db.execute("SELECT display_name,icon FROM users WHERE id = (?)", (userid,)).fetchall()
         return render_template("set.html",users=users)
 
+@csrf.exempt
 @app.route("/map", methods=["GET", "POST"])
 def map():
     if request.method == "POST":
-
+        lat = request.json['lat']
+        lng = request.json['lng']
+        text = request.json['text']
+        
+        print(lat)
         return redirect("/map")
     else:
         return render_template("map.html")

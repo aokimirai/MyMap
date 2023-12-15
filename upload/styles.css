@@ -178,3 +178,10 @@ nav .navbar-brand
     -moz-appearance: none;
     resize: vertical;
 }
+
+/*map*/
+#mapid{
+	margin: 0px; padding: 0px;
+	width: 480px; height: 320px;
+	background-color: gray;
+}
