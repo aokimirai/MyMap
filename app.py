@@ -192,11 +192,22 @@ def set():
 @app.route("/map", methods=["GET", "POST"])
 def map():
     if request.method == "POST":
+        userid = session["user_id"]
         lat = request.json['lat']
         lng = request.json['lng']
-        text = request.json['text']
-        
-        print(lat)
-        return redirect("/map")
+        comment = request.json['text']
+        con = sqlite3.connect(DBNAME)
+        db = con.cursor()
+        db.execute("INSERT INTO markers (userid,lat,lng,comment) VALUES (?,?,?,?)", (userid,lat,lng,comment,))
+        con.commit()
+        markers = db.execute("SELECT lat,lng,comment FROM markers WHERE id = (?)", (userid,)).fetchall()
+        con.close()
+        return render_template("map.html", markers = markers)
     else:
-        return render_template("map.html")
+        userid = session["user_id"]
+        con = sqlite3.connect(DBNAME)
+        db = con.cursor()
+        markers = db.execute("SELECT lat,lng,comment FROM markers WHERE userid = (?)", (userid,)).fetchall()
+        con.close()
+        print(markers)
+        return render_template("map.html", markers = markers)

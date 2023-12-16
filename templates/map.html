@@ -49,22 +49,24 @@
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
-    L.marker([36.36946463797535, 138.22353136256697]).addTo(map)
-        .bindPopup('長野大学')
-        .openPopup();
+    marker = []
+    {% for marker in markers %}
+        console.log(marker[0])
+        L.marker([{{ marker[0] }}, {{ marker[1] }}]).addTo(map)
+            .bindPopup("{{ marker[2] }}");
+    {% endfor %}
     
-    // プルダウンで表示の変更
-    // マップピンの書き込みが必要
+    // プルダウンで表示させる県の変更
     let view = document.querySelector('[name="pre"]');
     view.onchange = event => {
         const coordi = event.target.value;
         lat = coordi.substr(0, coordi.indexOf(','))
         lng = coordi.substr(coordi.indexOf(',') + 1)
         map.setView([lat, lng], 8);
-        L.marker([36.36946463797535, 138.22353136256697]).addTo(map)
-        .bindPopup('長野大学')
-        .openPopup();
-
+        {% for marker in markers %}
+        L.marker([{{ marker[0] }}, {{ marker[1] }}]).addTo(map)
+            .bindPopup("{{ marker[2] }}");
+        {% endfor %}
     };
 
     var csrftoken = $('meta[name=csrf-token]').attr('content')
