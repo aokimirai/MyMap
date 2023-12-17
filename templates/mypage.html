@@ -17,29 +17,23 @@
         <hr>
     {% endfor %}
 
-    {% if posts|length < 1 %}
+    {% if markers|length < 1 %}
         <p>投稿がありません</p>
     {% endif %}
 
-    {% for post in posts %}
-        <div class="info">
-            <p class="posttime">投稿日時：{{ post[5] }}</p>
-        </div>
-            {% if post[2] != None %}
-                <p class="goon">{{ post[2] }}</p>
-            {% endif %}
-            {% if post[4] != None %}
-                <img src="../upload/postimg/{{ post[4] }}" width="40%" style="margin-bottom: 10px;">
-            {% endif %}
-            <p>{{ post[3] }}</p>
-        <div>
-            <form action="/mypage" method="post" enctype="multipart/form-data">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <input name="postid" value="{{ post[0] }}" class="hidden">
-                <button class="btn btn-secondary" value="rewrite" type="submit" name="action">編集</button>
-                <button class="btn btn-secondary" value="delete" type="submit" name="action">削除</button>
-            </form>
-        </div>
-        <hr class="dash">
-    {% endfor %}
+    
+    <table class="table table-hover">
+        <tr>
+            <th>カテゴリー</th>
+            <th>登録日時</th>
+            <th>コメント</th>
+        </tr>
+        {% for marker in markers %}
+        <tr>
+            <td>{{ marker[3] }}</td>
+            <td>{{ marker[4] }}</td>
+            <td>{{ marker[2] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 {% endblock %}

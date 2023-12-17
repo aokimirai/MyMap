@@ -14,35 +14,53 @@
 {% endblock %}
 
 {% block main %}
-<div class="mb-3">
-    <p>地域選択</p>
-    <select name="pre">
-        <option value="36.000850616844694, 137.9999356269849">日本</option>
-        <option value="43.46722, 142.8278">北海道</option>
-        <option value="40.78028, 140.8319">青森</option>
-        <option value="39.59139, 141.3625">岩手</option>
-        <option value="38.44556, 140.9281">宮城</option>
-        <option value="39.7475, 140.4086">秋田</option>
-        <option value="38.44639, 140.1028">山形</option>
-        <option value="37.37889, 140.2253">福島</option>
-        <option value="36.30639, 140.3186">茨城</option>
-        <option value="36.68917, 139.8192">栃木</option>
-        <option value="36.50389, 138.9853">群馬</option>
-        <option value="35.99667, 139.3478">埼玉</option>
-        <option value="35.51278, 140.2039">千葉</option>
-        <option value="35.01833, 139.5986">東京</option>
-        <option value="35.41417, 139.3403">神奈川</option>
-        <option value="36.13, 138.0439">長野</option>
-        <option value="35.7775, 137.055">岐阜</option>
-        <option value="35.03444, 137.215">愛知</option>
-        <option value="34.62278, 135.5111">大阪</option>
-        <option value="35.25194, 135.4458">京都</option>
-        <option value="33.5225, 130.6681">福岡</option>
-        <option value="25.77111, 126.64">沖縄</option>
-    </select>
-</div>
-<!-- map表示域 -->
-<div id="map" style="width:100%; height:500px"></div>
+    <div class="mb-3">
+        <p>地域選択</p>
+        <select name="pre">
+            <option value="36.000850616844694, 137.9999356269849">日本</option>
+            <option value="43.46722, 142.8278">北海道</option>
+            <option value="40.78028, 140.8319">青森</option>
+            <option value="39.59139, 141.3625">岩手</option>
+            <option value="38.44556, 140.9281">宮城</option>
+            <option value="39.7475, 140.4086">秋田</option>
+            <option value="38.44639, 140.1028">山形</option>
+            <option value="37.37889, 140.2253">福島</option>
+            <option value="36.30639, 140.3186">茨城</option>
+            <option value="36.68917, 139.8192">栃木</option>
+            <option value="36.50389, 138.9853">群馬</option>
+            <option value="35.99667, 139.3478">埼玉</option>
+            <option value="35.51278, 140.2039">千葉</option>
+            <option value="35.01833, 139.5986">東京</option>
+            <option value="35.41417, 139.3403">神奈川</option>
+            <option value="36.13, 138.0439">長野</option>
+            <option value="35.7775, 137.055">岐阜</option>
+            <option value="35.03444, 137.215">愛知</option>
+            <option value="34.62278, 135.5111">大阪</option>
+            <option value="35.25194, 135.4458">京都</option>
+            <option value="33.5225, 130.6681">福岡</option>
+            <option value="25.77111, 126.64">沖縄</option>
+        </select>
+    </div>
+    <!-- map表示域 -->
+    <div id="map" style="width:100%; height:500px"></div>
+    <!-- 追加したリスト -->
+    <table class="table table-hover">
+        <tr>
+            <th>カテゴリー</th>
+            <th>登録日時</th>
+            <th>コメント</th>
+            <th>場所に飛ぶ</th>
+        </tr>
+        {% for marker in markers %}
+        <tr>
+            <td>{{ marker[3] }}</td>
+            <td>{{ marker[4] }}</td>
+            <td>{{ marker[2] }}</td>
+            <td><button class="btn btn-outline-primary" onclick=jamp({{marker[0]}},{{marker[1]}})>座標に飛ぶ</button></td>
+        </tr>
+        {% endfor %}
+    </table>
+
 <script>
     // 初期の表示状態
     const map = L.map('map').setView([36.000850616844694, 137.9999356269849], 5);
@@ -63,11 +81,12 @@
         lat = coordi.substr(0, coordi.indexOf(','))
         lng = coordi.substr(coordi.indexOf(',') + 1)
         map.setView([lat, lng], 8);
-        {% for marker in markers %}
-        L.marker([{{ marker[0] }}, {{ marker[1] }}]).addTo(map)
-            .bindPopup("{{ marker[2] }}");
-        {% endfor %}
     };
+
+    // リストから座標に飛ぶ
+    function jamp(lat, lng) {
+        map.setView([lat, lng],20);
+    }
 
     var csrftoken = $('meta[name=csrf-token]').attr('content')
     $.ajaxSetup({

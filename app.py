@@ -153,9 +153,9 @@ def mypage():
         con = sqlite3.connect(DBNAME)
         db = con.cursor()
         users = db.execute("SELECT display_name,icon,created_at FROM users WHERE id = ?", (userid,)).fetchall()
-        # posts = db.execute("SELECT * FROM posts WHERE userid = ? ORDER BY posted_at DESC", (userid,)).fetchall()
+        markers = db.execute("SELECT lat,lng,comment,cate,created_at FROM markers WHERE userid = (?)", (userid,)).fetchall()
         con.close()
-        return render_template("mypage.html",users=users) # posts=posts
+        return render_template("mypage.html",users=users, markers=markers)
 
 
 @app.route("/set", methods=["GET", "POST"])
@@ -200,14 +200,13 @@ def map():
         db = con.cursor()
         db.execute("INSERT INTO markers (userid,lat,lng,comment) VALUES (?,?,?,?)", (userid,lat,lng,comment,))
         con.commit()
-        markers = db.execute("SELECT lat,lng,comment FROM markers WHERE id = (?)", (userid,)).fetchall()
         con.close()
-        return render_template("map.html", markers = markers)
+        return redirect("/map")
     else:
         userid = session["user_id"]
         con = sqlite3.connect(DBNAME)
         db = con.cursor()
-        markers = db.execute("SELECT lat,lng,comment FROM markers WHERE userid = (?)", (userid,)).fetchall()
+        markers = db.execute("SELECT lat,lng,comment,cate,created_at FROM markers WHERE userid = (?)", (userid,)).fetchall()
         con.close()
         print(markers)
         return render_template("map.html", markers = markers)
