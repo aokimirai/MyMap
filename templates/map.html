@@ -16,7 +16,7 @@
 {% block main %}
     <div class="mb-3">
         <p>地域選択</p>
-        <select name="pre">
+        <select name="pre" id = "pre">
             <option value="36.000850616844694, 137.9999356269849">日本</option>
             <option value="43.46722, 142.8278">北海道</option>
             <option value="40.78028, 140.8319">青森</option>
@@ -49,7 +49,7 @@
             <th>カテゴリー</th>
             <th>登録日時</th>
             <th>コメント</th>
-            <th>場所に飛ぶ</th>
+            <th>座標に飛ぶ</th>
         </tr>
         {% for marker in markers %}
         <tr>
@@ -86,6 +86,9 @@
     // リストから座標に飛ぶ
     function jamp(lat, lng) {
         map.setView([lat, lng],20);
+        var position = $('#pre').offset().top;
+        var speed = 100;
+        $("html,body").animate({scrollTop:position},speed);
     }
 
     var csrftoken = $('meta[name=csrf-token]').attr('content')

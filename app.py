@@ -206,7 +206,7 @@ def map():
         userid = session["user_id"]
         con = sqlite3.connect(DBNAME)
         db = con.cursor()
-        markers = db.execute("SELECT lat,lng,comment,cate,created_at FROM markers WHERE userid = (?)", (userid,)).fetchall()
+        markers = db.execute("SELECT lat,lng,comment,cate,created_at FROM markers WHERE userid = (?) ORDER BY created_at DESC", (userid,)).fetchall()
         con.close()
         print(markers)
         return render_template("map.html", markers = markers)
