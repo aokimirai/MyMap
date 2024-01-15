@@ -6,6 +6,11 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
     integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
     crossorigin=""></script>
+    <!-- locate -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js" charset="utf-8"></script>
+    <script src="../upload/L.Control.Locate.min.js"></script>
+    
     <meta name="csrf-token" content="{{ csrf_token() }}">
 {% endblock %}
 
@@ -50,36 +55,65 @@
             <th>登録日時</th>
             <th>コメント</th>
             <th>座標に飛ぶ</th>
+            <th></th>
         </tr>
+        
+        {% set ns = namespace(cnt = 0) %}
         {% for marker in markers %}
         <tr>
             <td>{{ marker[3] }}</td>
             <td>{{ marker[4] }}</td>
             <td>{{ marker[2] }}</td>
-            <td><button class="btn btn-outline-primary" onclick=jamp({{marker[0]}},{{marker[1]}})>座標に飛ぶ</button></td>
+            <td><button class="btn btn-outline-primary" onclick=jamp("{{ marker[0] }}","{{ marker[1] }}")>座標に飛ぶ</button></td>
+            <td><button class="btn btn-outline-danger" onclick=dell({{ns.cnt}},{{ marker[0] }},{{ marker[1] }})>削除</button></td>
         </tr>
+        {% set ns.cnt = ns.cnt + 1 %}
         {% endfor %}
     </table>
 
 <script>
+    var csrftoken = $('meta[name=csrf-token]').attr('content')
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken)
+            }
+        }
+    })
     // 初期の表示状態
     const map = L.map('map').setView([36.000850616844694, 137.9999356269849], 5);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
-    marker = []
+    marked = [];
     {% for marker in markers %}
-        console.log(marker[0])
-        L.marker([{{ marker[0] }}, {{ marker[1] }}]).addTo(map)
-            .bindPopup("{{ marker[2] }}");
+        var i = 0;
+        marked.push(L.marker([{{ marker[0] }}, {{ marker[1] }}]))
+        L.marker([{{ marker[0] }}, {{ marker[1] }}]).addTo(map).bindPopup("{{ marker[2] }}");
+        i = i+1;
     {% endfor %}
+    console.log(marked);
+
+    //現在地
+    var option = {
+        position: 'topright',
+        strings: {
+            title: "現在地を表示",
+            popup: "現在地"
+        },
+        locateOptions: {
+          maxZoom: 30
+        }
+    }
+
+    var lc = L.control.locate(option).addTo(map);
     
     // プルダウンで表示させる県の変更
     let view = document.querySelector('[name="pre"]');
     view.onchange = event => {
         const coordi = event.target.value;
-        lat = coordi.substr(0, coordi.indexOf(','))
-        lng = coordi.substr(coordi.indexOf(',') + 1)
+        lat = coordi.substr(0, coordi.indexOf(','));
+        lng = coordi.substr(coordi.indexOf(',') + 1);
         map.setView([lat, lng], 8);
     };
 
@@ -91,16 +125,28 @@
         $("html,body").animate({scrollTop:position},speed);
     }
 
-    var csrftoken = $('meta[name=csrf-token]').attr('content')
-    $.ajaxSetup({
-        beforeSend: function(xhr, settings) {
-            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
-                xhr.setRequestHeader("X-CSRFToken", csrftoken)
-            }
-        }
-    })
-    var marker_flag = false;
+    // マーカーの消去
+    function dell(cnt,lat,lng) {
+        console.log(marked[cnt]);
+        map.removeLayer(marked[cnt]);
+        // バックグラウンドに送信
+        var fData = new FormData();
+        fData.append('lat', lat);
+        fData.append('lng', lng);
+        fData = Object.fromEntries(fData.entries())
+        $.ajax({
+            url : '/dell',
+            type : 'POST',
+            data : JSON.stringify(fData),
+            dataType : "json",
+            processData : false,
+            contentType : "application/json",
+            async : false,
+          })
+        window.location.reload();
+    }
 
+    var marker_flag = false;
     // ピンの追加
     map.on('click', function(e) {
         lat = e.latlng.lat;
@@ -120,11 +166,9 @@
             fData.append('text', text);
             // オブジェクトに変換
             fData = Object.fromEntries(fData.entries())
-            console.log(fData);
             marker_flag = true;
         }
-        
-
+        // 追加データをバックエンドに送る
         if (marker_flag === true){
             $.ajax({
                 url : '/map',
@@ -132,13 +176,34 @@
                 data : JSON.stringify(fData),
                 dataType : "json",
                 processData : false,
-                contentType : "application/json"
+                contentType : "application/json",
+                async : false,
               })
-              .done(function(data){
-                $('#output').text(data.output).show();
+              // レスポンス加工
+              .done(function(response){
+                /*var cate = jsonObjects.cate;
+                var time = jsonObjects.time;
+                var text = jsonObjects.text;
+                $("#cate").html(cate);
+                $("#time").html(time);
+                $("#text").html(text);
+                newlat = jsonObjects.lat;
+                newlng = jsonObjects.lng;
+                */
+                window.location.reload();
               });  
         };
     });
+    // reload を検知して最新の座標に飛ぶ
+    if (window.performance) {
+        if (window.performance.navigation.type == 1){
+            lat = {{newmarker[0]}};
+            lng = {{newmarker[1]}};
+            map.setView([lat, lng],20);
+        }
+    };
+
+    
 
 </script>
 

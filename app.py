@@ -1,5 +1,5 @@
 import os, json
-from flask import Flask, flash, redirect, render_template, render_template_string, request, session
+from flask import Flask, flash, redirect, render_template, render_template_string, request, session, jsonify
 from flask_session.__init__ import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from helpers import apology, login_required
@@ -9,6 +9,7 @@ import sqlite3
 import re
 import sys
 from flask_wtf.csrf import CSRFProtect
+
 
 app = Flask(__name__, static_folder='upload')
 
@@ -200,13 +201,33 @@ def map():
         db = con.cursor()
         db.execute("INSERT INTO markers (userid,lat,lng,comment) VALUES (?,?,?,?)", (userid,lat,lng,comment,))
         con.commit()
+        markers = db.execute("SELECT lat,lng,comment,cate,created_at FROM markers WHERE userid = (?) ORDER BY created_at DESC", (userid,)).fetchone()
         con.close()
-        return redirect("/map")
+        print(markers)
+        dict = {'lat':markers[0],
+                'lng':markers[1],
+                'text':markers[2],
+                'cate':markers[3],
+                'time':markers[4]
+                }
+        return jsonify(dict)
     else:
         userid = session["user_id"]
         con = sqlite3.connect(DBNAME)
         db = con.cursor()
         markers = db.execute("SELECT lat,lng,comment,cate,created_at FROM markers WHERE userid = (?) ORDER BY created_at DESC", (userid,)).fetchall()
+        newmarker = db.execute("SELECT lat,lng FROM markers WHERE userid = (?) ORDER BY created_at DESC", (userid,)).fetchone()
         con.close()
-        print(markers)
-        return render_template("map.html", markers = markers)
+        return render_template("map.html", markers = markers, newmarker = newmarker)
+    
+@app.route("/dell", methods=["POST"])
+def dell():
+    userid = session["user_id"]
+    lat = request.json['lat']
+    lng = request.json['lng']
+    con = sqlite3.connect(DBNAME)
+    db = con.cursor()
+    db.execute("DELETE FROM markers WHERE lat = ? AND lng = ?",(lat,lng))
+    con.commit()
+    con.close()
+    return redirect("/map")
