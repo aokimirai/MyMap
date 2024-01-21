@@ -227,7 +227,7 @@ def dell():
     lng = request.json['lng']
     con = sqlite3.connect(DBNAME)
     db = con.cursor()
-    db.execute("DELETE FROM markers WHERE lat = ? AND lng = ?",(lat,lng))
+    db.execute("DELETE FROM markers WHERE lat = ? and lng = ?",(lat, lng))
     con.commit()
     con.close()
     return redirect("/map")
